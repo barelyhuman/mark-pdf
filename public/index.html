@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Markdown to PDF</title>
+    <link rel="stylesheet" href="https://rsms.me/raster/raster2.css?v=20" />
+    <style>
+      body {
+        max-width: 100ch;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Markdown to PDF</h1>
+    <nav>
+      <div>
+        <a href="https://github.com/barelyhuman/mark-pdf">Source</a>
+      </div>
+      <div>
+        <a href="https://github.com/sponsors/barelyhuman">Support/Sponsor</a>
+      </div>
+    </nav>
+    <form id="uploadForm" enctype="multipart/form-data">
+      <div>
+        <label for="fileInput">Select a file:</label>
+        <div>
+          <input
+            type="file"
+            id="fileInput"
+            name="file"
+            accept=".md, .txt"
+            required
+          />
+        </div>
+      </div>
+      <br />
+      <button type="submit">Upload</button>
+    </form>
+
+    <div id="converted"></div>
+
+    <article>
+      <br />
+      <br />
+      <h3>Note</h3>
+
+      <p>
+        Markdown to PDF is a free service but beware that the file you use is
+        going to be uploaded on a server. Due to it's simple nature of just
+        getting a file and converting it into a PDF, the file is processed on
+        the said server.
+      </p>
+      <p>
+        The server does delete the uploaded and processed files every 5 minutes,
+        so it's both accessible and keeps server and storage costs to a minimum.
+      </p>
+      <p>
+        For <strong>security</strong> purposes, it is better if you self host
+        this if you wish to use it for more critical markdown documents.
+      </p>
+
+      <br />
+      <br />
+
+      <h3>Credits</h3>
+      <ul>
+        <li><a href="https://pandoc.org/">Pandoc</a></li>
+        <li><a href="https://www.latex-project.org/get/">LateX</a></li>
+        <li>
+          <a href="https://github.com/Wandmalfarbe/pandoc-latex-template"
+            >eisvogel latex template</a
+          >
+        </li>
+      </ul>
+    </article>
+
+    <script type="module">
+      import { reactive, html } from "https://esm.sh/@arrow-js/core";
+
+      let pollingTimer;
+
+      const initState = {
+        uploaded: false,
+        uploadedFileName: "",
+        converted: false,
+        downloadLink: "",
+      };
+
+      const store = reactive({
+        ...initState,
+      });
+
+      const resetStore = (store, init) => {
+        Object.keys(store).forEach((key) => {
+          if (init[key] != undefined) {
+            store[key] = init[key];
+          } else {
+            delete store[key];
+          }
+        });
+      };
+
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+
+          resetStore(store, initState);
+
+          if (pollingTimer) clearTimeout(pollingTimer);
+
+          const fileInput = document.getElementById("fileInput");
+
+          const formData = new FormData();
+          formData.append("file", fileInput.files[0]);
+
+          try {
+            const response = await fetch("/api/upload", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              store.uploaded = true;
+              checkIfUploaded(result.name);
+            } else {
+              console.error("Upload failed:", response.status);
+            }
+          } catch (error) {
+            console.error("Upload failed:", error.message);
+          }
+        });
+
+      async function checkIfUploaded(fileName) {
+        const response = await fetch(`/api/generated/${fileName}`).then((x) =>
+          x.ok ? x.json() : null
+        );
+        if (!response) {
+          return;
+        }
+
+        if (response.processing) {
+          pollingTimer = setTimeout(() => {
+            console.log("calling again");
+            checkIfUploaded(fileName);
+          }, 3500);
+          return;
+        }
+
+        if (response.processed) {
+          if (pollingTimer) clearTimeout(pollingTimer);
+          store.converted = true;
+          store.downloadLink = response.downloadLink;
+        }
+      }
+
+      const App = html`<ul>
+        ${() => store.uploaded && html`<li>Uploaded</li>`}
+        ${() =>
+          store.uploaded && !store.converted && html`<li>Processing ...</li>`}
+        ${() =>
+          store.uploaded &&
+          store.converted &&
+          html`<li>
+            <a href=${store.downloadLink}>Download</a>
+          </li> `}
+      </ul>`;
+
+      const container = document.getElementById("converted");
+
+      App(container);
+    </script>
+  </body>
+</html>

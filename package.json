@@ -1,0 +1,25 @@
+{
+  "name": "mark-pdf",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "packageManager": "pnpm@8.6.2",
+  "scripts": {
+    "dev": "nodemon app.js",
+    "start": "node app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "koa": "^2.14.2",
+    "koa-body": "^6.0.1",
+    "koa-static": "^5.0.0",
+    "koa-trie-router": "^2.1.7",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

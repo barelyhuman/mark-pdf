@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+PROJECT_DIR="${SCRIPT_DIR}/.."
+
+cd $PROJECT_DIR
+. .env
+
+APP_NAME=mark-pdf
+
+COMMANDS="""
+cd /apps/${APP_NAME}
+. ~/.nvm/nvm.sh
+nvm use
+npm i -g pnpm@8.6.2
+pnpm i
+make restart
+"""
+
+rsync -aP --exclude=".git" --exclude="uploads" --exclude="node_modules" --exclude=".env" ./ "$DEPLOY_HOST":"/apps/${APP_NAME}"
+
+ssh "$DEPLOY_HOST" "/bin/bash -lc '$COMMANDS'"

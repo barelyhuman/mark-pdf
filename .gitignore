@@ -1,0 +1,9 @@
+node_modules 
+/uploads
+.DS_Store
+public/processed
+
+
+.env*
+!.env.example
+
