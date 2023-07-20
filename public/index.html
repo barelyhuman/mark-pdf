@@ -4,8 +4,48 @@
     <title>Markdown to PDF</title>
     <link rel="stylesheet" href="https://rsms.me/raster/raster2.css?v=20" />
     <style>
+      :root {
+        --dark: #23283d;
+        --gray: #a8b0d3;
+        --light: #e9ecf8;
+      }
+
       body {
         max-width: 100ch;
+        color: var(--dark);
+      }
+
+      button {
+        display: inline-block;
+        padding: 6px 12px;
+        background: transparent;
+        border-radius: 4px;
+        border: 1px solid var(--light);
+      }
+
+      button:hover {
+        border-color: var(--dark);
+        cursor: pointer;
+      }
+
+      input[type="file"] {
+        border: 1px solid var(--light);
+        border-radius: 4px;
+        padding: 4px 8px;
+      }
+
+      input[type="file"]:hover,
+      input[type="file"]:focus {
+        border-color: var(--dark);
+        cursor: pointer;
+      }
+
+      input[type="file"]::file-selector-button {
+        display: inline-block;
+        padding: 4px 8px;
+        background: transparent;
+        border-radius: 4px;
+        border: 0px;
       }
     </style>
   </head>
@@ -31,10 +71,10 @@
             accept=".md, .txt"
             required
           />
+          <button type="submit">Upload</button>
         </div>
       </div>
       <br />
-      <button type="submit">Upload</button>
     </form>
 
     <div id="converted"></div>
